@@ -2,90 +2,104 @@ class Rod{
 
    float rodLength;
    float thermalDiffusivity;
-   int totalPoints;
+   int columnTotal;
+   int rowTotal;
    float deltaX;
+   float deltaY;
    float deltaT;
-   float r;
+   float rX;
+   float rY;
    
-   float[] points;
+   float[][] squares;
   
-   public Rod(float rodLength, float thermalDiffusivity, int totalPoints){
+   public Rod(float rodLength, float thermalDiffusivity, int columnTotal, int rowTotal){
      this.rodLength = rodLength;
      this.thermalDiffusivity = thermalDiffusivity;
-     this.totalPoints = totalPoints;
+     this.columnTotal = columnTotal;
+     this.rowTotal = rowTotal;
      
-     // Δx = L / (N-1)
-     deltaX = rodLength/(totalPoints-1);
+     // Δx = L / (xN-1)
+     deltaX = rodLength/(rowTotal-1);
      
-     // Δt ≤ 0.5 × Δx² / α
-     deltaT = 0.5 * ((deltaX * deltaX) / thermalDiffusivity);
+     // Δy = L / (yN-1)
+     deltaY = rodLength/(columnTotal-1);
      
-     r = (thermalDiffusivity * deltaT)/ (deltaX * deltaX);
+     // Δt ≤ (Δx² * Δy²) / (2α(Δx² + Δy²))
+     deltaT = ((deltaX * deltaX) * (deltaY * deltaY)) / (2 * thermalDiffusivity * ((deltaX * deltaX) + (deltaY * deltaY)));
      
-     points = new float[totalPoints];
+     // α(Δt/Δx²)
+     rX = (thermalDiffusivity * deltaT)/ (deltaX * deltaX);
+     
+     // α(Δt/Δy²)
+     rY = (thermalDiffusivity * deltaT)/ (deltaY * deltaY);
+     
+     squares = new float[rowTotal][columnTotal];
      
      // Distribution pattern
-     for (int i = 0; i < totalPoints; i++){
-       float pos = i * deltaX;
-       float cycle = (pos / rodLength) % 0.5;  
-       points[i] = (cycle < 0.25) ? (cycle * 400) : (100 - (cycle - 0.25) * 400);
+     for (int i = 0; i < rowTotal; i++){
+       for (int j = 0; j < columnTotal; j++){
+         if( i != 0 && i != rowTotal-1 && j != 0 && j != columnTotal-1){
+           squares[i][j] = (float)(Math.random() * 180);
+         }else{
+           squares[i][j] = 0;
+         }
+       }
      }
+     // Random heat spots
+     for (int n = 0; n < 5; n++) {
+       int x = (int)random(1, rowTotal - 1);
+       int y = (int)random(1, columnTotal - 1);
+       squares[x][y] = 100;
+     }
+     
    }
    
    void update(){
-     float[] newPoints = new float[totalPoints];
+     float[][] newSquares = new float[rowTotal][columnTotal];
      
      // Read phase
-     for (int i = 0 ; i != totalPoints; i++){
-       if( i != 0 && i != totalPoints-1){
-         // Calculate phase
-         newPoints[i] = points[i] + (r *( points[i-1] - ( 2 * points[i]) + points[i+1]));
+     for (int i = 0; i < rowTotal; i++){
+       for (int j = 0; j < columnTotal; j++){
+         
+         // If it is not a X edge
+         if( i != 0 && i != rowTotal-1 && j != 0 && j != columnTotal-1){
+           // Calculate phase
+           newSquares[i][j] = squares[i][j] + (rX *( squares[i-1][j] - ( 2 * squares[i][j]) + squares[i+1][j]))  + (rY *( squares[i][j-1] - ( 2 * squares[i][j]) + squares[i][j+1]));
+         }else{
+           // Handle passing on old boundary values
+           newSquares[i][j] = squares[i][j];
+         }
        }
      }
      
-     // Handle boundary
-     newPoints[0] = points[0];
-     newPoints[totalPoints-1] = points[totalPoints-1];
-     
      // Write phase
-     points = newPoints;
+     squares = newSquares;
      
      
    }
 
    void display(){
-     noFill();
-     beginShape();
-     for (int i = 0 ; i != totalPoints; i++){
-       float x = (i * deltaX) + (width/2 - (totalPoints* deltaX)/2);
+     noStroke();
+     for (int i = 0; i < rowTotal; i++){
        
-       float y = height/2 - points[i];
-       
-       strokeWeight(10);
-       vertex(x,y);
-     }
-     endShape();
-     strokeWeight(0);
-     for (int i = 0 ; i != totalPoints; i++){
-       float x = (i * deltaX) + (width/2 - (totalPoints* deltaX)/2);
-       
-       float y = height/2 - points[i];
-       
-       // Calculate & Set temperature colour
-       float temp = points[i];
-       float colorFactor = map(temp, 0, 100, 0, 1);
-       
-       color coldColor = color(0, 0, 255);    // Blue
-       color hotColor = color(255, 0, 0);     // Red
-       
-       color pointColor = lerpColor(coldColor, hotColor, colorFactor);
-       
-       fill(pointColor);
-       
-       // Draw point
-       
-       ellipse(x, y, 30, 30);
-       
+       for (int j = 0; j < columnTotal; j++){
+         // Set Square Location
+         float x = (i * deltaX) + (width/2 - (rowTotal* deltaX)/2);
+         float y = (j * deltaY) + (height/2 - (columnTotal* deltaY)/2);
+         
+         // Calculate & Set temperature colour
+         float temp = squares[i][j];
+         float colorFactor = map(temp, 0, 100, 0, 1);
+         color coldColor = color(0, 0, 255);    // Blue
+         color hotColor = color(255, 0, 0);     // Red
+         color squareColor = lerpColor(coldColor, hotColor, colorFactor);
+         
+         fill(squareColor);
+         
+         // Draw Square
+         rect(x, y, deltaX, deltaY);
+         
+       }
      }
      
    }
