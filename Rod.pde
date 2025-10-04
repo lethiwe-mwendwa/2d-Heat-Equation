@@ -35,11 +35,10 @@ class Rod{
      
      squares = new float[rowTotal][columnTotal];
      
-     // Distribution pattern
      for (int i = 0; i < rowTotal; i++){
        for (int j = 0; j < columnTotal; j++){
          if( i != 0 && i != rowTotal-1 && j != 0 && j != columnTotal-1){
-           squares[i][j] = (float)(Math.random() * 180);
+           squares[i][j] = (float)(Math.random() * 100);
          }else{
            squares[i][j] = 0;
          }
@@ -49,7 +48,7 @@ class Rod{
      for (int n = 0; n < 5; n++) {
        int x = (int)random(1, rowTotal - 1);
        int y = (int)random(1, columnTotal - 1);
-       squares[x][y] = 100;
+       squares[x][y] = 50;
      }
      
    }
@@ -102,6 +101,25 @@ class Rod{
        }
      }
      
+   }
+   
+   void heatUpSquareAt(float x, float y){
+    // Set Square Location
+         int i = (int)((x - (width/2 - (rowTotal* deltaX)/2))/deltaX);
+         
+         int j = (int)((y - (height/2 - (columnTotal* deltaY)/2))/deltaY);
+         
+         if((i >= 0 && i < rowTotal) && (j >= 0 && j < columnTotal)){
+           squares[i][j] = squares[i][j] + 100.0;
+           if((i+1 >= 0 && i+1 < rowTotal) && (j+1 >= 0 && j+1 < columnTotal)){
+           squares[i+1][j+1] = squares[i+1][j+1] + 100.0;
+           if((i-1 >= 0 && i-1 < rowTotal) && (j-1 >= 0 && j-1 < columnTotal)){
+           squares[i+1][j+1] = squares[i+1][j+1] + 100.0;
+           }
+           }
+           
+         }
+         
    }
   
 }

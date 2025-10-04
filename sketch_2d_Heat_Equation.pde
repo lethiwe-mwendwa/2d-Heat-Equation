@@ -1,4 +1,5 @@
-Rod metalBar = new Rod(700,0.5,100,100);
+Rod metalPlane = new Rod(300,0.4,500,500);
+boolean locked;
 
 void setup(){
   size(1060,720,P2D);
@@ -7,8 +8,23 @@ void setup(){
 
 
 void draw() {
-  metalBar.update();
+  metalPlane.update();
   
   background(51);
-  metalBar.display();
+  metalPlane.display();
+}
+
+void mousePressed() {
+  locked = true;
+  metalPlane.heatUpSquareAt(mouseX,mouseY);
+}
+
+void mouseDragged() {
+  if(locked) {
+    metalPlane.heatUpSquareAt(mouseX,mouseY);
+  }
+}
+
+void mouseReleased() {
+  locked = false;
 }
